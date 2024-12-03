@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Quiz</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="quiz-container" class="container mx-auto px-4 py-8 max-w-2xl">
+        <div class="bg-white shadow-md rounded-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">Assignment Quiz</h1>
+            
+            <div id="question-container">
+                <h2 id="question-text" class="text-xl font-semibold mb-4"></h2>
+                
+                <div id="options-container" class="space-y-3">
+                    <!-- Options will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div id="navigation" class="mt-6 flex justify-between">
+                <button id="next-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Next Question
+                </button>
+            </div>
+
+            <div id="progress" class="mt-4 text-center text-gray-600">
+                Question <span id="current-question">1</span> of 10
+            </div>
+
+            <div id="result-container" class="hidden text-center">
+                <h2 class="text-2xl font-bold mb-4">Quiz Completed!</h2>
+                <p id="score-text" class="text-lg mb-4"></p>
+                <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                text: "What is the primary focus of the video assignment?",
+                options: [
+                    "Economic trends",
+                    "Scientific research", 
+                    "Social media impact",
+                    "Global challenges"
+                ],
+                correctAnswer: 3
+            },
+            {
+                text: "Which key concept was emphasized in the video?",
+                options: [
+                    "Technological innovation",
+                    "Environmental sustainability",
+                    "Cultural diversity",
+                    "Economic policy"
+                ],
+                correctAnswer: 1
+            },
+            {
+                text: "What was the main argument presented in the first half of the video?",
+                options: [
+                    "Individual action is ineffective",
+                    "Global cooperation is crucial",
+                    "Technology will solve everything",
+                    "Current systems are perfect"
+                ],
+                correctAnswer: 1
+            },
+            {
+                text: "Which statistical data point was most surprising in the video?",
+                options: [
+                    "Population growth rate",
+                    "Renewable energy adoption",
+                    "Economic inequality",
+                    "Technological advancement"
+                ],
+                correctAnswer: 1
+            },
+            {
+                text: "What solution was proposed in the video?",
+                options: [
+                    "Complete economic shutdown",
+                    "Increased technological investment",
+                    "Gradual systemic changes",
+                    "Immediate radical transformation"
+                ],
+                correctAnswer: 2
+            },
+            {
+                text: "Which expert was quoted in the video?",
+                options: [
+                    "A scientific researcher",
+                    "A political leader",
+                    "An economic analyst",
+                    "A technology entrepreneur"
+                ],
+                correctAnswer: 0
+            },
+            {
+                text: "What was the primary emotional tone of the video?",
+                options: [
+                    "Hopeless and pessimistic",
+                    "Neutral and academic",
+                    "Cautiously optimistic",
+                    "Aggressive and confrontational"
+                ],
+                correctAnswer: 2
+            },
+            {
+                text: "Which region was used as a case study in the video?",
+                options: [
+                    "North America",
+                    "European Union",
+                    "East Asia",
+                    "Sub-Saharan Africa"
+                ],
+                correctAnswer: 0
+            },
+            {
+                text: "What timeframe was discussed for implementing changes?",
+                options: [
+                    "Immediate short-term",
+                    "Next 5 years",
+                    "Next decade",
+                    "By mid-century"
+                ],
+                correctAnswer: 2
+            },
+            {
+                text: "What was the final call to action in the video?",
+                options: [
+                    "Accept the status quo",
+                    "Become politically active",
+                    "Ignore the problem",
+                    "Move to another planet"
+                ],
+                correctAnswer: 1
+            }
+        ];
+
+        class Quiz {
+            constructor(questions) {
+                this.questions = questions;
+                this.currentQuestionIndex = 0;
+                this.score = 0;
+                this.selectedAnswers = new Array(questions.length).fill(null);
+
+                this.questionText = document.getElementById('question-text');
+                this.optionsContainer = document.getElementById('options-container');
+                this.nextBtn = document.getElementById('next-btn');
+                this.currentQuestionSpan = document.getElementById('current-question');
+                this.resultContainer = document.getElementById('result-container');
+                this.quizContainer = document.getElementById('quiz-container');
+
+                this.nextBtn.addEventListener('click', () => this.moveNext());
+
+                this.loadQuestion();
+            }
+
+            loadQuestion() {
+                const question = this.questions[this.currentQuestionIndex];
+                this.questionText.textContent = question.text;
+                
+                // Clear previous options
+                this.optionsContainer.innerHTML = '';
+
+                // Create new options
+                question.options.forEach((option, index) => {
+                    const optionElement = document.createElement('button');
+                    optionElement.textContent = option;
+                    optionElement.classList.add('w-full', 'text-left', 'p-3', 'rounded-lg', 'transition', 'duration-200', 'hover:bg-blue-100', 'bg-gray-200');
+
+                    optionElement.addEventListener('click', () => this.selectAnswer(index));
+                    this.optionsContainer.appendChild(optionElement);
+                });
+
+                // Update next button
+                this.nextBtn.textContent = this.currentQuestionIndex === this.questions.length - 1 ? 'Finish Quiz' : 'Next Question';
+
+                // Update progress
+                this.currentQuestionSpan.textContent = this.currentQuestionIndex + 1;
+
+                // Disable previous selections
+                this.nextBtn.disabled = true;
+                this.nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            selectAnswer(index) {
+                const options = this.optionsContainer.children;
+                const currentQuestion = this.questions[this.currentQuestionIndex];
+
+                // Disable further selections
+                for (let option of options) {
+                    option.disabled = true;
+                }
+
+                // Color coding
+                if (index === currentQuestion.correctAnswer) {
+                    // Correct answer
+                    options[index].classList.remove('bg-gray-200');
+                    options[index].classList.add('bg-green-500', 'text-white');
+                    this.score++;
+                } else {
+                    // Incorrect answer
+                    options[index].classList.remove('bg-gray-200');
+                    options[index].classList.add('bg-red-500', 'text-white');
+
+                    // Highlight correct answer
+                    options[currentQuestion.correctAnswer].classList.remove('bg-gray-200');
+                    options[currentQuestion.correctAnswer].classList.add('bg-green-500', 'text-white');
+                }
+
+                // Store selected answer
+                this.selectedAnswers[this.currentQuestionIndex] = index;
+
+                // Enable next button
+                this.nextBtn.disabled = false;
+                this.nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            moveNext() {
+                // Move to next question or finish quiz
+                if (this.currentQuestionIndex < this.questions.length - 1) {
+                    this.currentQuestionIndex++;
+                    this.loadQuestion();
+                } else {
+                    this.finishQuiz();
+                }
+            }
+
+            finishQuiz() {
+                // Hide quiz, show results
+                this.quizContainer.querySelector('.bg-white').innerHTML = `
+                    <div class="text-center">
+                        <h2 class="text-2xl font-bold mb-4">Quiz Completed!</h2>
+                        <p class="text-lg mb-4">
+                            Your Score: ${this.score} out of ${this.questions.length}
+                        </p>
+                        <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
+                            Back to Home
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize quiz when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new Quiz(questions);
+        });
+    </script>
+</body>
+</html>
